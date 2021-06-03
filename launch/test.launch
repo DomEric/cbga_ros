@@ -1,0 +1,13 @@
+<launch>
+
+    <rosparam file="$(find cbga)/config/config.yaml" />    
+    
+    <node pkg="cbga" type="agent_test.py" name="Agent_1"  output="screen"/>
+    <node pkg="cbga" type="agent_test.py" name="Agent_2"  output="screen"/>
+    <node pkg="cbga" type="agent_test.py" name="Agent_3"  output="screen"/>
+    <node pkg="cbga" type="agent_test.py" name="Agent_4"  output="screen"/>
+    
+    <node pkg="cbga" type="plot.py" name="MatPlot" output="screen"/>
+    
+    
+</launch>
