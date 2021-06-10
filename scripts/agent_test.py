@@ -118,7 +118,8 @@ class AgentNode():
                         
                         bid_list_index = int(agent_path_id - 1)
 
-                        if this_agent_cost > other_agent_cost:
+                        if this_agent_cost > other_agent_cost or \
+                        (this_agent_cost == other_agent_cost and self.agent_index < self.other_agent_path_list[i].id):
                             #print("This agent path index: " + str(this_agent_index))
                             self.agent_position.x = self.task_list[this_agent_index].get('location')[0]
                             self.agent_position.y = self.task_list[this_agent_index].get('location')[1]
