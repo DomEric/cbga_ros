@@ -169,20 +169,24 @@ class AgentNode():
         old_list = [0 for _ in range(self.max_depth)]
 
         rospy.sleep(1)
+        self.agent_bid_list_pub.publish(self.bid_list, self.agent_index)
+        self.agent_cost_list_pub.publish(self.final_cost_list, self.agent_index)
+        self.agent_path_list_pub.publish(self.path_list, self.agent_index)
 
         while not rospy.is_shutdown():
-            self.agent_bid_list_pub.publish(self.bid_list, self.agent_index)
-            self.agent_cost_list_pub.publish(self.final_cost_list, self.agent_index)
-            self.agent_path_list_pub.publish(self.path_list, self.agent_index)
-
-            # Publish new data every n seconds 
-            rospy.sleep(0.5)
 
             # print("Start Agent_" + str(self.agent_index))
 
             self.path_finding()
 
             # print("Agent_", self.agent_index, " planed path: ", self.path_list)
+
+            self.agent_bid_list_pub.publish(self.bid_list, self.agent_index)
+            self.agent_cost_list_pub.publish(self.final_cost_list, self.agent_index)
+            self.agent_path_list_pub.publish(self.path_list, self.agent_index)
+
+            # Publish new data every n seconds 
+            rospy.sleep(0.3)
 
             self.compare_cost()
 
@@ -262,13 +266,13 @@ class AgentNode():
         self.agent_position.y = self.agent_list[self.agent_index - 1].get('location')[1]
 
         # depth of the bundle (n tasks per bundle)
-        self.max_depth = 20
+        self.max_depth = 12
 
         # bluetooth modifier
         self.bluetooth_modifier = 2
 
         # Number of repetitions of same cost required to determine consensus
-        self.consensus_counter = 40
+        self.consensus_counter = 20
 
         # All the necessary lists 
         self.settings()
@@ -321,12 +325,3 @@ if __name__ == '__main__':
         ne = AgentNode()
         ne.run()
     except rospy.ROSInterruptException: pass 
-    
-    
-
-        
-    
-    
-
-
-
