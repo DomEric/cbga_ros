@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import matplotlib.pyplot as plt
+from numpy.core.fromnumeric import size
 import rospy
 from geometry_msgs.msg import Point
 from std_msgs.msg import String
@@ -34,6 +35,10 @@ class PlotNode():
 
             while len(self.finished_agents) < self.num_agents and not rospy.is_shutdown():
                 
+                plt.rcParams.update({'font.size': 12})
+                plt.rc('xtick', labelsize = 16)
+                plt.rc('ytick', labelsize = 16)
+
                 plt.figure(1)
 
                 tasks_x = [self.task_list[i].get('location')[0] for i in range(self.num_tasks)] 
@@ -67,17 +72,13 @@ class PlotNode():
                             plot_list_x.append(self.task_list[task_index].get('location')[0])
                             plot_list_y.append(self.task_list[task_index].get('location')[1])                    
 
-                    if self.path_list[i].id == 1:
-                        plt.plot(plot_list_x, plot_list_y, 'g-', label = 'Agent 1 path')
-                    elif self.path_list[i].id == 2:
-                        plt.plot(plot_list_x, plot_list_y, 'm-', label = 'Agent 2 path')
-                    elif self.path_list[i].id == 3:
-                        plt.plot(plot_list_x, plot_list_y, 'c-', label = 'Agent 3 path')    
-                    elif self.path_list[i].id == 4:    
-                        plt.plot(plot_list_x, plot_list_y, 'y-', label = 'Agent 4 path')
+
+                    plt.plot(plot_list_x, plot_list_y, color = 'C'+str(i + 2), label = 'Agent '+str(i + 1)+' path')               
                 
                 plt.draw()
                 plt.legend()
+                plt.xlabel('x coordinate of agent/task in meters', size = 16)
+                plt.ylabel('y coordinate of agent/task in meters', size = 16)
                 plt.show()
 
                 plt.figure(2)
@@ -92,18 +93,18 @@ class PlotNode():
                     task_per_agent.append([self.path_list[j].list[i] for j in range(self.num_agents)])
 
                 for i in range(len(self.path_list[0].list)):
-                    self.bar_plot = plt.barh(agents, costs_per_agents[i], color = 'magenta', edgecolor='black', alpha = 0.4)
+                    self.bar_plot = plt.barh(agents, costs_per_agents[i], color = 'green', edgecolor='black', alpha = 0.4)
 
                 for i in range(len(self.path_list[0].list)):
                     for i_x, i_y in zip(agents_index, costs_per_agents[i]):
                         if task_per_agent[i][i_x] != 0:
-                            plt.text(i_y - 45, i_x, 'Task_{}\ncost: {}'.format((task_per_agent[i][i_x]), round(costs_per_agents[i][i_x])))
+                            plt.text(i_y - 35, i_x, 'Task_{}\nTTFT: {}'.format((task_per_agent[i][i_x]), round(costs_per_agents[i][i_x])))
 
-                plt.xlabel('Vrijeme potrebno za odrađivanje zadataka u sekundama')
+                plt.xlabel('Time To Finish Task (TTFT) in seconds', size = 16)
                 plt.draw()
                 plt.show()
 
-                print("Costs per agents",costs_per_agents)
+                #print("Costs per agents",costs_per_agents)
 
                 if len(self.finished_agents) == self.num_agents:
                     rospy.signal_shutdown('Shutdown PlotNode')                             
