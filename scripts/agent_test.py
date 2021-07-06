@@ -59,7 +59,7 @@ class AgentNode():
                     if j + 1 in blocked_tasks: 
                         self.temp_cost_list[j] = -1
 
-                #print("Agent_",self.agent_index," dist list: ", self.temp_cost_list)
+                # print("Agent_",self.agent_index," dist list: ", self.temp_cost_list)
 
                 min_temp_cost_list = []
                 for j in range(self.num_tasks):
@@ -75,10 +75,12 @@ class AgentNode():
                 min_cost_index = self.temp_cost_list.index(min_cost)
                 self.path_list[i] = min_cost_index + 1
 
-                if min_cost == 0:
-                    print("Min Dinstance = 0")  
-                  
-                self.final_cost_list[i] = self.final_cost_list[i-1] + cost           
+                # if min_cost == 0:
+                    # print("Min Dinstance = 0")  
+
+                # print('Agent_' + str(self.agent_index),'min cost:',min_cost)
+
+                self.final_cost_list[i] = self.final_cost_list[i-1] + min_cost           
                 
                 self.agent_position.x = self.task_list[min_cost_index].get('location')[0]
                 self.agent_position.y = self.task_list[min_cost_index].get('location')[1]
@@ -94,6 +96,7 @@ class AgentNode():
 
         old_index = 0
         first_pass = True
+        max_index_list = [i + 1 for i in range(self.num_agents)]
         
         for i in range(self.num_agents):  # compare with other agents 
             
@@ -103,12 +106,12 @@ class AgentNode():
                     
                     agent_path_id = self.other_agent_path_list[i].list[j]
 
-                    #print("Agent path: " + str(agent_path_id))
-                    #print("Diff: ", self.other_agent_path_list[i].id, " ", self.agent_index)
-                    #print("Other: ", self.other_agent_path_list)
+                    # print("Agent path: " + str(agent_path_id))
+                    # print("Diff: ", self.other_agent_path_list[i].id, " ", self.agent_index)
+                    # print("Other: ", self.other_agent_path_list)
                     if self.check_list(self.path_list, agent_path_id) and agent_path_id != 0: # the check for task similarity 
                         
-                        print("Other agent path: " + str(agent_path_id) + " from Agent_" + str(i + 1))
+                        # print("Other agent path: " + str(agent_path_id) + " from Agent_" + str(i + 1))
 
                         this_agent_index = self.path_list.index(agent_path_id)
                         this_agent_cost = self.final_cost_list[this_agent_index]
@@ -119,8 +122,8 @@ class AgentNode():
                         bid_list_index = int(agent_path_id - 1)
 
                         if this_agent_cost > other_agent_cost or \
-                        (this_agent_cost == other_agent_cost and self.agent_index < self.other_agent_path_list[i].id):
-                            #print("This agent path index: " + str(this_agent_index))
+                        (this_agent_cost == other_agent_cost and self.agent_index < max(max_index_list)):
+                            # print("This agent path index: " + str(this_agent_index))
                             self.agent_position.x = self.task_list[this_agent_index].get('location')[0]
                             self.agent_position.y = self.task_list[this_agent_index].get('location')[1]
                             
@@ -130,19 +133,19 @@ class AgentNode():
                                 self.final_cost_list[k + this_agent_index] = 0
                                 if bid_index != 0:
                                     self.bid_list[bid_index - 1] = 0
-                                #print("Agent_", self.agent_index, " k: ",k, ", bid list index: ",bid_index - 1)                                 
+                                # print("Agent_", self.agent_index, " k: ",k, ", bid list index: ",bid_index - 1)                                 
                             
                             if max(self.path_list) == 0:
                                 self.agent_position.x = self.agent_list[self.agent_index - 1].get('location')[0]
                                 self.agent_position.y = self.agent_list[self.agent_index - 1].get('location')[1]
-                                print("Returned Agent_", self.agent_index,"to position:",self.agent_position.x,",",self.agent_position.y)
+                                # print("Returned Agent_", self.agent_index,"to position:",self.agent_position.x,",",self.agent_position.y)
 
                             else:
                                 for n in range(self.max_depth):
                                     if self.path_list[n] == 0:
                                         self.agent_position.x = self.task_list[self.path_list[n - 1] - 1].get('location')[0]
                                         self.agent_position.y = self.task_list[self.path_list[n - 1] - 1].get('location')[1]
-                                        print("Returned Agent_", self.agent_index,"to position:",self.agent_position.x,",",self.agent_position.y)
+                                        # print("Returned Agent_", self.agent_index,"to position:",self.agent_position.x,",",self.agent_position.y)
                                         break
                             
                             if first_pass:
@@ -155,9 +158,9 @@ class AgentNode():
                                 old_index = bid_list_index   
 
 
-                        elif this_agent_cost == other_agent_cost:
-                            rospy.signal_shutdown("2 similar Costs, cant converge")
-                            rospy.loginfo("2 similar Costs, cant converge. Agent_" + str(self.agent_index) + " cost: " + str(this_agent_cost) + " other agent cost: " + str(other_agent_cost))        
+                        # elif this_agent_cost == other_agent_cost:
+                        #     rospy.signal_shutdown("2 similar Costs, cant converge")
+                        #     rospy.loginfo("2 similar Costs, cant converge. Agent_" + str(self.agent_index) + " cost: " + str(this_agent_cost) + " other agent cost: " + str(other_agent_cost))        
                         
 
     def run(self):
@@ -165,25 +168,28 @@ class AgentNode():
         counter = 0
         old_list = [0 for _ in range(self.max_depth)]
 
+        rospy.sleep(1)
+
         while not rospy.is_shutdown():
             self.agent_bid_list_pub.publish(self.bid_list, self.agent_index)
             self.agent_cost_list_pub.publish(self.final_cost_list, self.agent_index)
             self.agent_path_list_pub.publish(self.path_list, self.agent_index)
 
             # Publish new data every n seconds 
-            rospy.sleep(1)
+            rospy.sleep(0.5)
 
-            print("Start Agent_" + str(self.agent_index))
+            # print("Start Agent_" + str(self.agent_index))
 
             self.path_finding()
 
-            print("Agent_", self.agent_index, " planed path: ", self.path_list)
+            # print("Agent_", self.agent_index, " planed path: ", self.path_list)
 
             self.compare_cost()
 
-            print("Agent_" + str(self.agent_index) + " cost list: " + str(self.final_cost_list))
-            print("Agent_", self.agent_index, "bid list: ", self.bid_list)
-            print("Agent_" + str(self.agent_index) + " old path list: " + str(old_list))
+            # print("Agent_" + str(self.agent_index) + " cost list: " + str(self.final_cost_list))
+            # print("Agent_", self.agent_index, "bid list: ", self.bid_list)
+            # print("Agent_" + str(self.agent_index) + " path list: " + str(self.path_list))
+            # print()
 
             if old_list == self.path_list:
                 counter += 1
@@ -191,14 +197,14 @@ class AgentNode():
             else:
                 counter = 0
                 old_list = self.path_list.copy()
-            print("Agent_" + str(self.agent_index) + " path list: " + str(self.path_list))
-            print("Counter = ", counter)
+            # print("Agent_" + str(self.agent_index) + " path list: " + str(self.path_list))
+            # print("Counter = ", counter)
             if counter > self.consensus_counter:
                 self.finished_pub.publish("Anget_" + str(self.agent_index))
                 rospy.signal_shutdown("Optimal route found.")
                 rospy.loginfo("Optimal route found. Shuting down Agent_" + str(self.agent_index))
                 
-            print("End Agent_" + str(self.agent_index))    
+            # print("End Agent_" + str(self.agent_index))    
 
 
     def distance(self, goal_x, goal_y):
@@ -256,13 +262,13 @@ class AgentNode():
         self.agent_position.y = self.agent_list[self.agent_index - 1].get('location')[1]
 
         # depth of the bundle (n tasks per bundle)
-        self.max_depth = 6
+        self.max_depth = 20
 
         # bluetooth modifier
         self.bluetooth_modifier = 2
 
         # Number of repetitions of same cost required to determine consensus
-        self.consensus_counter = 20
+        self.consensus_counter = 40
 
         # All the necessary lists 
         self.settings()
@@ -284,14 +290,14 @@ class AgentNode():
         rospy.Subscriber('/cost_list', FloatList, self.cost_list_callback)
         rospy.Subscriber('/path_list', IntList, self.path_list_callback)
 
-        print("Agent_",self.agent_index," path list: ")
-        print(self.path_list)
+        # print("Agent_",self.agent_index," path list: ")
+        # print(self.path_list)
         
-        print("Agent_",self.agent_index," cost list:")
-        print(self.final_cost_list)
+        # print("Agent_",self.agent_index," cost list:")
+        # print(self.final_cost_list)
         
-        print("Agent_",self.agent_index," bid list:")
-        print(self.bid_list)
+        # print("Agent_",self.agent_index," bid list:")
+        # print(self.bid_list)
 
         while (
             self.agent_bid_list_pub.get_num_connections() < self.num_agents and 
